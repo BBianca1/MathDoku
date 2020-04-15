@@ -15,8 +15,6 @@ public class GUI extends Application{
 
 	public static void main(String[] args) {
 		
-		
-		
 		launch(args);
 	}
 
@@ -26,7 +24,7 @@ public class GUI extends Application{
 		BorderPane mainPane = new BorderPane();
 		mainPane.setPadding(new Insets(10));
 		
-		Grid grid = new Grid(5);
+		//Grid grid = new Grid(5);
 		
 		TilePane pane = new TilePane(Orientation.HORIZONTAL);
 		pane.setAlignment(Pos.CENTER);
@@ -41,7 +39,7 @@ public class GUI extends Application{
 		
         pane.getChildren().addAll(undoBtn, redoBtn, loadBtn, showMistakes);
 		mainPane.setLeft(pane);
-		mainPane.setCenter(grid.getGrid());
+		//mainPane.setCenter(grid.getGrid());
 		
         Scene scene = new Scene(mainPane,700,700);
 		
