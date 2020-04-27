@@ -38,7 +38,7 @@ public class Grid{
 	Stack<Integer> undoValues;
 	Stack<Integer> undoId;
 
-	public Grid(int size, Cage cage, int fontSize) {
+	public Grid(int size, Cage cage, boolean showMistakes) {
 		
 		undoValues = new Stack<Integer>();
 		undoId = new Stack<Integer>();
@@ -73,10 +73,12 @@ public class Grid{
 				cells.put(id, cell);
 				cellPane = new StackPane();
 				noField = new TextField();
-				noField.setFont(Font.font("Verdana", FontWeight.NORMAL, fontSize));
+				noField.setFont(Font.font("Verdana", FontWeight.NORMAL, 15));
 				textFields.put(id, noField);
 				noField.setFocusTraversable(true);
 				this.textCheck(noField, id);
+				if(showMistakes)
+					this.checkMistakes(noField, id);
 				noField.setBackground(Background.EMPTY);
 				noField.setAlignment(Pos.CENTER);
 				noField.setPrefSize(dimentions, dimentions);
@@ -85,7 +87,7 @@ public class Grid{
 				if(id == cellId){
 					
 					opertaionArea = new TextArea(operations.get(cages.get(id)));
-					opertaionArea.setFont(Font.font("Verdana", FontWeight.NORMAL, fontSize));
+					opertaionArea.setFont(Font.font("Verdana", FontWeight.NORMAL, 15));
 					opertaionArea.setPrefSize(dimentions, dimentions);
 					opertaionArea.setEditable(false);
 					cellPane.getChildren().add(opertaionArea);
@@ -95,8 +97,6 @@ public class Grid{
 				cellPane.setBorder(borders.get(id));
 				grid.getChildren().add(cellPane);
 				}
-			
-			
 			Button noBtn = new Button(Integer.toString(i+1));
 			btnPane.getChildren().add(noBtn); 
 			btnPane.setAlignment(Pos.CENTER);
@@ -113,30 +113,76 @@ public class Grid{
 			@Override
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
 
-				boolean ok = true; //we presume that the value respects the rules
+				boolean okL = true; //we presume that the value respects the rules
+				boolean okC = true; //we presume that the value respects the rules
+				int jC = id % size;
+				int jL = id / size ;
+				if(jC == 0) {
+					
+					jC = size;
+					jL --;
+				}
+				if(jL == size)
+					
+					jL = size - 1;
+				
 				if (newValue.intValue() > oldValue.intValue()) {
 					
-					if(id % size != 0)
+						
 					for(int i = 0 ; i < size; i++) {
 						
-						//checkesa it column
-						if(id != size * i + id % size ) {
+						try {
 							
-							if(Integer.toString(values.get(size * i + id % size )) == tf.getText())
+							//checkesa it column
+							if(id != size * i + jC ) {
 								
-								ok = false;
+								if(textFields.get(size * i + jC).getText().equals(tf.getText()))	
+									okC = false;
+							}
+							
+							if(id != size * (jL) + i + 1)
+								
+							{
+								if(textFields.get(size * (jL) + i + 1).getText().equals(tf.getText()))
+									
+									okL = false;
+							}
+						} catch (NullPointerException e) {
+							// TODO: handle exception
 						}
-						
-						if(id != i + size + id / size)
-							
-							if(Integer.toString(values.get(i + size + id / size)) == tf.getText())
-								
-								ok = false;
 					}
 				}
-//				if(ok == false)
+				try {
 					
-			}
+					if(okC == false) 
+						
+						for(int i = 0 ; i < size; i++) 
+							
+							textFields.get(size * i + jC).setStyle("-fx-background-color: rgba(255, 102, 102,0.4);");
+					else 
+						
+						if(okL == true)
+							
+							for(int i = 0 ; i < size; i++) 
+								
+								textFields.get(size * i + jC).setStyle("-fx-background-color: rgba(255, 255, 255,0.1);");
+						
+					
+					if(okL == false) 
+						
+						for(int i = 0 ; i < size; i++) 
+							
+							textFields.get(size * (jL) + i + 1).setStyle("-fx-background-color: rgba(255, 102, 102,0.4);");
+					else
+						if(okC == true)
+							
+							for(int i = 0 ; i < size; i++) 
+								
+								textFields.get(size * (jL) + i + 1).setStyle("-fx-background-color: rgba(255, 255, 255,0.4);");
+				} catch (NullPointerException e) {
+					// TODO: handle exception
+				}
+				}
 			
 			
 		});
@@ -202,29 +248,10 @@ public class Grid{
 		return undoValues;
 	}
 	
-	public HashMap<Integer, Rectangle> getCells() {
-		
-		return cells;//cellId -> cell
-	}
-	
-	public HashMap<Integer, Integer> getCages() {
-	
-		return cages;//cellId - > cageId
-	}
-	
-	public int getSize() {
-	
-		return size;
-	}
 	
 	public VBox getGamePane() {
 	
 		return gamePane;
-	}
-	
-	public Scene getScene() {
-		
-		return scene;
 	}
 	
 

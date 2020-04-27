@@ -123,10 +123,7 @@ public class UndoRedo {
 					i.setText("");
 				}
 			});
-			noBtn.setOnAction(event -> {
-				
-				stage.close();
-			});
+			
 		});
 	}
 	

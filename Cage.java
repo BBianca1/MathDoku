@@ -312,7 +312,7 @@ public class Cage {
 				}
 			counter ++;
 			}
-		}
+		} 
 	
 	public HashMap<Integer, Integer> getFirstCells() {
 	

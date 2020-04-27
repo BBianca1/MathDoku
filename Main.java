@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Scanner;
 
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -143,12 +145,13 @@ public class Main extends Application {
 	                				mainPane = new BorderPane();
 	                				Cage cage = new Cage(file, (int) Math.sqrt(max));
 	                				scanner.close();
-	                				grid = new Grid((int) Math.sqrt(max), cage, 15);
+	                				CheckBox showMistakes = new CheckBox("Show mistakes");
+	                				grid = new Grid((int) Math.sqrt(max), cage, showMistakes.isSelected());
 	                				undoRedo = new UndoRedo(grid);
 	                				VBox btnPane = undoRedo.getButtonPane();
-	                				CheckBox showMistakes = new CheckBox("Show mistakes");
-	                				showMistakes.setSelected(true);
 	                				btnPane.getChildren().add(showMistakes);
+	                				showMistakes.setSelected(false);
+	                				this.showMistakes(showMistakes);
 	                				mainPane.setRight(btnPane);
 	                				mainPane.setCenter(grid.getGamePane());
 	                				Scene scene = new Scene(mainPane, 700, 700);
@@ -174,6 +177,38 @@ public class Main extends Application {
 	                		}
 	                	}
 	                }
+	                public void showMistakes(CheckBox cBox) {
+	                	
+	                	cBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+	                		
+	                		@Override
+	                		public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+	                			
+	                			if(oldValue.booleanValue() != newValue.booleanValue()) {
+	                				
+	                				mainPane = new BorderPane();
+		                			Cage cage = null;
+		                			try {
+		                				cage = new Cage(file, (int) Math.sqrt(max));
+		                			} catch (FileNotFoundException e) {
+		                				// TODO Auto-generated catch block
+		                				e.printStackTrace();
+		                			}
+//		                			CheckBox showMistakes = new CheckBox("Show mistakes");
+		                			grid = new Grid((int) Math.sqrt(max), cage, newValue.booleanValue());
+		                			undoRedo = new UndoRedo(grid);
+		                			VBox btnPane = undoRedo.getButtonPane();
+		                			btnPane.getChildren().add(cBox);
+		                			cBox.setSelected(newValue.booleanValue());
+		                			mainPane.setRight(btnPane);
+		                			mainPane.setCenter(grid.getGamePane());
+		                			Scene scene = new Scene(mainPane, 700, 700);
+		                			stage.setScene(scene);
+		                			stage.show();
+	                			}
+	                		}
+	                	});
+	                }
 	            });
 		
 		Scene scene = new Scene(mainPane, 700, 700);
@@ -183,9 +218,6 @@ public class Main extends Application {
 		stage.show();
 	}
 	
-	public int getSize() {
 	
-		return (int) Math.sqrt(max);
-	}
 
 }
