@@ -1,5 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 import javafx.application.Application;
@@ -9,8 +11,15 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.TilePane;
+import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -24,67 +33,159 @@ public class Main extends Application {
 	Stage stage = new Stage();
 	FileChooser fileChooser = new FileChooser();
 	File file;
+	Grid grid;
+	boolean ok;
+	UndoRedo undoRedo;
+	BorderPane mainPane;
+	int max;
 		
 	@Override
 	public void start(Stage stage) throws Exception {
 		
 		//pain of the game
-		BorderPane mainPane = new BorderPane();
+		mainPane = new BorderPane();
 		mainPane.setPadding(new Insets(10));
 
 		//pain of the buttons
-		TilePane btnPane = new TilePane();
+		VBox btnPane = new VBox(5);
 		btnPane.setAlignment(Pos.CENTER);
-		btnPane.setVgap(10);
-		btnPane.setHgap(10);
-		
 		
 		Button loadFromFile = new Button("Load from file");
-		btnPane.getChildren().addAll(loadFromFile);
-
-		mainPane.setLeft(btnPane);
-
+		Button loadFromText = new Button("Load from text");
+		btnPane.getChildren().addAll(loadFromFile, loadFromText);
+		mainPane.setCenter(btnPane);
 		
 		loadFromFile.setOnAction(
 				new EventHandler<ActionEvent>() {
 	                @Override
-	                
+	                 
 					public void handle(final ActionEvent e) {
 		
+	                	ok = true;
 	                	file = fileChooser.showOpenDialog(stage);
 	                	if(file != null) {
-	                	int max = 0;
+	                	max = 0;
 	                		
 	                		try {
 	                			Scanner scanner = new Scanner(file);
-	                			String line = scanner.nextLine();
+	                			String line ;
+	                			ArrayList<Integer> checkCells = new ArrayList<Integer>();
+	                			for (int i = 0; i < 65; i++) {
+	                				  checkCells.add(i, 0);
+	                			}
 	                			
 	                			//find the dimension of the grid
 	                			while (scanner.hasNextLine()) {
 	                				
-	                				String split[] = line.split(" ");
-	                				split = split[1].split(",");
-	                				for(int i = 0; i < split.length; i++) {
-	                					
-	                					int integer = Integer.parseInt(split[i]);
-	                					if (integer > max)
-	                						max = integer;
-	                				}
+	                				int integer;
 	                				line = scanner.nextLine();
+	                				String split[] = line.split(" ");
+	                				if(split.length == 2) {
+	                					if(split[0].replaceAll("([+, -, x, ÷, 0-9])", "").equals("") ||
+	                							 split[0].replaceAll("([+, -, x, ÷, 0-9])", "").substring(0, split[0].length() - 1).equals("-")) {
+	                						
+	                						split = split[1].split(",");
+	                						
+	                						for(int i = 0; i < split.length; i++) {
+	                							
+	                							integer = Integer.parseInt(split[i]);
+	                							checkCells.add(integer, 1);
+	                							checkCells.remove(integer + 1);
+	                							if (integer > max)
+	                								max = integer;
+	                						}
+	                					}
+	                					else {
+	                						
+	                						if(!"([+, -, x, ÷, 0-9])".contains(split[0].substring(split[0].length() - 1)) && split[0].length() > 2) {
+		                						
+		                						split[0] = split[0].substring(0, split[0].length() - 1);
+		                						split[0] = split[0].replace(split[0].substring(split[0].length() - 1), "÷");
+		                						split = split[1].split(",");
+		                						for(int i = 0; i < split.length; i++) {
+		                							
+		                							integer = Integer.parseInt(split[i]);
+		                							checkCells.add(integer, 1);
+		                							checkCells.remove(integer + 1);
+		                							if (integer > max)
+		                								max = integer;
+		                						}
+		                					}
+		                					else {
+		                						
+		                						ok = false;
+		                						break;
+		                					}
+	                					}
+	                				}
+	                				else{
+                						
+	                					ok = false;
+                						break;
+                					}
 	                			}
-	                			System.out.println((int) Math.sqrt(max));
-	                			scanner.close();
-	                		} catch (FileNotFoundException e1) {
+	                			if(max == (int) Math.sqrt(max) * (int) Math.sqrt(max)) {
+	                				
+	                				for(int i = 1; i <= max; i++) {
+	                					
+	                					if(checkCells.get(i) == 0) {
+	                						
+	                						ok = false;
+	                						break;
+	                					}
+	                				}
+	                			}
+	                			else
+            						
+                					ok = false;
+	                			if(ok == true) {
+		                				
+	                				mainPane = new BorderPane();
+	                				Cage cage = new Cage(file, (int) Math.sqrt(max));
+	                				scanner.close();
+	                				grid = new Grid((int) Math.sqrt(max), cage, 15);
+	                				undoRedo = new UndoRedo(grid);
+	                				VBox btnPane = undoRedo.getButtonPane();
+	                				CheckBox showMistakes = new CheckBox("Show mistakes");
+	                				showMistakes.setSelected(true);
+	                				btnPane.getChildren().add(showMistakes);
+	                				mainPane.setRight(btnPane);
+	                				mainPane.setCenter(grid.getGamePane());
+	                				Scene scene = new Scene(mainPane, 700, 700);
+	                				stage.setScene(scene);
+	                				stage.show();
+		                			}
+	                			else {
+	                				try {
+
+		                				TextArea ta = new TextArea("The file dose not have the corect format!");
+		                				mainPane.setTop(ta);
+		                				Scene scene = new Scene(mainPane, 700, 700);
+		                				stage.setScene(scene);
+		                				stage.show();
+									} catch (IllegalArgumentException e2) {
+										// TODO: handle exception
+									}
+	                			}
 	                			
+	                		} catch (FileNotFoundException e1) {
+	  
 	                			e1.printStackTrace();
 	                		}
 	                	}
 	                }
 	            });
 		
-		Scene scene = new Scene(mainPane, 700, 700);	
+		Scene scene = new Scene(mainPane, 700, 700);
+		stage.setMinHeight(900);
+		stage.setMinWidth(900);
 		stage.setScene(scene);
 		stage.show();
+	}
+	
+	public int getSize() {
+	
+		return (int) Math.sqrt(max);
 	}
 
 }
